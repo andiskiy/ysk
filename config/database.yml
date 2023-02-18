@@ -1,0 +1,16 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+development:
+  <<: *default
+  database: ysk_development
+test:
+  <<: *default
+  database: ysk_test
+production:
+  <<: *default
+  database: ysk_production
+  username: ysk
+  password: <%= ENV["YSK_DATABASE_PASSWORD"] %>
