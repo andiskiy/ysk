@@ -16,10 +16,12 @@ module Telegram
       halt(:voice, :blank) if voice.blank?
       errors.add(:chat_id, :not_found) if chat['id'].blank?
       errors.add(:message_id, :not_found) if params['message_id'].blank?
+
+      failed? && halt
     end
 
     def call_worker
-      # code
+      ::Telegram::Audio::RecognizeWorker.perform_async(chat['id'], params['message_id'], voice['file_id'])
     end
 
     def voice
