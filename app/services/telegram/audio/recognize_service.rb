@@ -35,7 +35,7 @@ module Telegram
         return I18n.t('telegram.errors.invalid_audio_file') if failed?
 
         if yandex_api.success?
-          yandex_api.response_body['result']
+          yandex_api.response_body['result'].presence || I18n.t('telegram.errors.failed_recognize')
         else
           I18n.t('telegram.errors.failed_recognize')
         end
