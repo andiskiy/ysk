@@ -1,0 +1,4 @@
+ru:
+  telegram:
+    errors:
+      invalid_message: Сообщение не может быть обработано

@@ -35,3 +35,4 @@
 .generators
 .idea/
 .rakeTasks
+.byebug_history
