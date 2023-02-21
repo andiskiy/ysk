@@ -92,4 +92,22 @@ RSpec.describe Telegram::MessageHandlerService do
 
     it { expect(call_service).to be_failed }
   end
+
+  context 'when file_id is nil' do
+    before { voice['file_id'] = nil }
+
+    it { expect(call_service).to be_failed }
+  end
+
+  context 'when file_id is blank' do
+    before { voice['file_id'] = '' }
+
+    it { expect(call_service).to be_failed }
+  end
+
+  context 'when file_id is missing' do
+    before { voice.delete('file_id') }
+
+    it { expect(call_service).to be_failed }
+  end
 end
