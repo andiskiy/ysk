@@ -32,6 +32,18 @@ module Api
       http_response.code
     end
 
+    def success?
+      errors.blank?
+    end
+
+    def failed?
+      !success?
+    end
+
+    def errors
+      @errors ||= ::ErrorsSet.new
+    end
+
     private
 
     def call
