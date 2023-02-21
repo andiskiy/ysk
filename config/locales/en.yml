@@ -1,4 +1,6 @@
 en:
   telegram:
     errors:
-      invalid_message: Message cannot be processed
+      invalid_message: Message cannot be processed.
+      failed_recognize: Failed to recognize speech.
+      invalid_audio_file: Problems downloading the audio file. Please try again.

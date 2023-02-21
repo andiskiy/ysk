@@ -1,4 +1,6 @@
 ru:
   telegram:
     errors:
-      invalid_message: Сообщение не может быть обработано
+      invalid_message: Сообщение не может быть обработано.
+      failed_recognize: Не удалось распознать речь.
+      invalid_audio_file: Проблемы при скачивании аудио файла. Пожалуйста, повторите попытку.
