@@ -1,24 +1,36 @@
-# README
+# YSK
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+This is Yandex SpeechKit. App convert voice messages to text from telegram-bot.
+## Used technologies
 
-Things you may want to cover:
+* Rails 7.0.4
+* Ruby 3.1.3
+* PostgreSQL
+* Puma
+* [Telegram-bot](https://github.com/telegram-bot-rb/telegram-bot)
 
-* Ruby version
+## Getting Started
 
-* System dependencies
+Install [RVM](https://rvm.io/) with Ruby 3.1.3.
 
-* Configuration
+Install gems:
+```
+gem install bundler
+bundle install
+```
 
-* Database creation
+##### Install DB
 
-* Database initialization
+```
+rake db:create
+rake db:migrate
+```
 
-* How to run the test suite
+Rails start:
 
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+```
+cp .env.example .env
+rails s
+rake telegram:bot:poller
+bundle exec sidekiq
+```
