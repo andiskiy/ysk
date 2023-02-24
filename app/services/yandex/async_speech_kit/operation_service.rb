@@ -5,7 +5,7 @@ module Yandex
     class OperationService < ApplicationService
       NEXT_WORKER_RUN_TIME = 60 # seconds
 
-      attr_accessor :chat_id, :message_id, :operation_id
+      attr_accessor :chat_id, :file_id, :message_id, :operation_id
 
       def process
         validate
@@ -44,6 +44,8 @@ module Yandex
           text: text,
           reply_to_message_id: message_id,
         )
+
+        delete_object_from_storage
       end
 
       def text
@@ -58,6 +60,12 @@ module Yandex
           text: I18n.t('telegram.errors.failed_recognize'),
           reply_to_message_id: message_id,
         )
+
+        delete_object_from_storage
+      end
+
+      def delete_object_from_storage
+        ::Yandex::ObjectStorage::DeleteService.call(file_id: file_id)
       end
 
       def response_body

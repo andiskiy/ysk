@@ -27,6 +27,7 @@ module Yandex
           call_worker
         else
           send_message
+          delete_object_from_storage
         end
       end
 
@@ -34,6 +35,7 @@ module Yandex
         Yandex::AsyncSpeechKit::OperationWorker.perform_in(
           perform_worker_at,
           chat_id,
+          file_id,
           message_id,
           yandex_api.response_body['id'],
         )
@@ -45,6 +47,10 @@ module Yandex
           text: I18n.t('telegram.errors.failed_recognize'),
           reply_to_message_id: message_id,
         )
+      end
+
+      def delete_object_from_storage
+        ::Yandex::ObjectStorage::DeleteService.call(file_id: file_id)
       end
 
       def perform_worker_at

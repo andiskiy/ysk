@@ -19,7 +19,7 @@ RSpec.describe Yandex::AsyncSpeechKit::TranscribeService do
   let(:message_id) { Faker::Number.number }
   let(:success_status) { true }
   let(:file_url) { Faker::Lorem.word }
-  let(:worker_params) { [perform_worker_at, chat_id, message_id, yandex_api_result['id']] }
+  let(:worker_params) { [perform_worker_at, chat_id, file_id, message_id, yandex_api_result['id']] }
   let(:perform_worker_at) { ((duration / described_class::DIVISOR) + described_class::MEASUREMENT_ERROR).seconds }
 
   let(:yandex_api_result) do
@@ -53,6 +53,8 @@ RSpec.describe Yandex::AsyncSpeechKit::TranscribeService do
         .and_return(Struct.new(:result).new(file_url)),
     )
 
+    allow(::Yandex::ObjectStorage::DeleteService).to(receive(:call).with(file_id: file_id))
+
     allow(::Telegram::Message::SendService).to receive(:call).with(tg_message_params)
 
     allow(::Yandex::AsyncSpeechKit::OperationWorker).to(
@@ -66,6 +68,7 @@ RSpec.describe Yandex::AsyncSpeechKit::TranscribeService do
       expect(call_service).to be_success
       expect(::Telegram::Message::SendService).not_to have_received(:call)
       expect(::Yandex::ObjectStorage::PutService).to have_received(:call).with(file_id: file_id)
+      expect(::Yandex::ObjectStorage::DeleteService).not_to have_received(:call)
       expect(::Yandex::AsyncSpeechKit::OperationWorker).to have_received(:perform_in).with(*worker_params)
     end
   end
@@ -78,6 +81,7 @@ RSpec.describe Yandex::AsyncSpeechKit::TranscribeService do
       expect(::Yandex::AsyncSpeechKit::OperationWorker).not_to have_received(:perform_in)
       expect(::Yandex::ObjectStorage::PutService).to have_received(:call).with(file_id: file_id)
       expect(::Telegram::Message::SendService).to have_received(:call).with(tg_message_params)
+      expect(::Yandex::ObjectStorage::DeleteService).to have_received(:call).with(file_id: file_id)
     end
   end
 
@@ -88,6 +92,7 @@ RSpec.describe Yandex::AsyncSpeechKit::TranscribeService do
       expect(call_service).to be_failed
       expect(::Telegram::Message::SendService).not_to have_received(:call)
       expect(::Yandex::ObjectStorage::PutService).not_to have_received(:call)
+      expect(::Yandex::ObjectStorage::DeleteService).not_to have_received(:call)
       expect(::Yandex::AsyncSpeechKit::OperationWorker).not_to have_received(:perform_in)
     end
   end
@@ -99,6 +104,7 @@ RSpec.describe Yandex::AsyncSpeechKit::TranscribeService do
       expect(call_service).to be_failed
       expect(::Telegram::Message::SendService).not_to have_received(:call)
       expect(::Yandex::ObjectStorage::PutService).not_to have_received(:call)
+      expect(::Yandex::ObjectStorage::DeleteService).not_to have_received(:call)
       expect(::Yandex::AsyncSpeechKit::OperationWorker).not_to have_received(:perform_in)
     end
   end
@@ -110,6 +116,7 @@ RSpec.describe Yandex::AsyncSpeechKit::TranscribeService do
       expect(call_service).to be_failed
       expect(::Telegram::Message::SendService).not_to have_received(:call)
       expect(::Yandex::ObjectStorage::PutService).not_to have_received(:call)
+      expect(::Yandex::ObjectStorage::DeleteService).not_to have_received(:call)
       expect(::Yandex::AsyncSpeechKit::OperationWorker).not_to have_received(:perform_in)
     end
   end
