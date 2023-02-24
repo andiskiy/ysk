@@ -2,6 +2,9 @@
 
 module Api
   class ApplicationApi
+
+    class Error < StandardError; end
+
     attr_reader :rest_client_exception, :rest_client_response
 
     class << self
@@ -90,6 +93,10 @@ module Api
       path[0] = '' if path[0] == '/'
 
       self.class::BASE_URL + path
+    end
+
+    def halt
+      raise Error
     end
   end
 end

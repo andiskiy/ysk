@@ -19,7 +19,12 @@ module Telegram
     end
 
     def call_worker
-      ::Telegram::Audio::RecognizeWorker.perform_async(chat['id'], voice['file_id'], params['message_id'])
+      ::Telegram::Audio::RecognizeWorker.perform_async(
+        chat['id'],
+        voice['file_id'],
+        voice['duration'],
+        params['message_id'],
+      )
     end
 
     def voice

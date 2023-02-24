@@ -18,17 +18,6 @@ RSpec.describe Telegram::Audio::RecognizeService do
   let(:file_path) { 'voice/file_2.oga' }
   let(:text) { 'result' }
 
-  let(:get_file_response) do
-    {
-      'ok' => true,
-      'result' => {
-        'file_id' => file_id,
-        'file_path' => file_path,
-        'file_unique_id' => Faker::Lorem.word
-      }
-    }
-  end
-
   let(:send_message_params) do
     {
       chat_id: chat_id,
@@ -38,10 +27,10 @@ RSpec.describe Telegram::Audio::RecognizeService do
   end
 
   let(:stub_download_file) do
-    allow(::Api::Telegram::DownloadFile).to(
+    allow(::Telegram::Audio::DownloadService).to(
       receive(:call)
-        .with(file_path: file_path)
-        .and_return(Struct.new(:response_body, :response_code).new('response_body', d_f_response_code)),
+        .with(file_id: file_id)
+        .and_return(Struct.new(:result, :failed?).new('response_body', d_f_failed_state)),
     )
   end
 
@@ -59,12 +48,8 @@ RSpec.describe Telegram::Audio::RecognizeService do
 
   let(:stub_send_message) { allow(Telegram.bot).to receive(:send_message).with(send_message_params) }
 
-  let(:d_f_response_code) { 200 }
+  let(:d_f_failed_state) { false }
   let(:speech_kit_success) { true }
-
-  before do
-    allow(Telegram.bot).to receive(:get_file).with(file_id: file_id).and_return(get_file_response)
-  end
 
   context 'when everything is ok' do
     before do
@@ -86,18 +71,12 @@ RSpec.describe Telegram::Audio::RecognizeService do
     end
 
     let(:text) { I18n.t('telegram.errors.invalid_audio_file') }
-    let(:d_f_response_code) { 401 }
+    let(:d_f_failed_state) { true }
 
     it 'is failed' do
-      expect(call_service).to be_failed
+      expect(call_service).to be_success
       expect(Telegram.bot).to have_received(:send_message).with(send_message_params)
     end
-  end
-
-  context 'when get_file is failed' do
-    let(:get_file_response) { { 'ok' => false } }
-
-    it { expect(call_service).to be_failed }
   end
 
   context 'when yandex speech api failed' do
