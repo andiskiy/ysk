@@ -30,7 +30,7 @@ module Yandex
       end
 
       def still_transcribing
-        Yandex::AsyncSpeechKit::OperationWorker.perform_in(
+        ::Yandex::AsyncSpeechKit::OperationWorker.perform_in(
           NEXT_WORKER_RUN_TIME.seconds,
           chat_id,
           message_id,

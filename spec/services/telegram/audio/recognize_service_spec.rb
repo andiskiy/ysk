@@ -9,13 +9,14 @@ RSpec.describe Telegram::Audio::RecognizeService do
     {
       chat_id: chat_id,
       file_id: file_id,
-      message_id: message_id
+      message_id: message_id,
+      duration: duration
     }
   end
   let(:chat_id) { Faker::Number.number }
   let(:file_id) { Faker::Lorem.word }
   let(:message_id) { Faker::Number.number }
-  let(:file_path) { 'voice/file_2.oga' }
+  let(:duration) { 10 }
   let(:text) { 'result' }
 
   let(:send_message_params) do
@@ -26,72 +27,38 @@ RSpec.describe Telegram::Audio::RecognizeService do
     }
   end
 
-  let(:stub_download_file) do
-    allow(::Telegram::Audio::DownloadService).to(
-      receive(:call)
-        .with(file_id: file_id)
-        .and_return(Struct.new(:result, :failed?).new('response_body', d_f_failed_state)),
-    )
-  end
+  context 'when duration < 30' do
+    context 'when everything is ok' do
+      before do
+        allow(::Yandex::SpeechKit::TranscribeService).to(
+          receive(:call)
+            .with(file_id: file_id)
+            .and_return(
+              Struct
+                .new(:result)
+                .new(text),
+            ),
+        )
 
-  let(:stub_speech_kit) do
-    allow(::Api::Yandex::SpeechKit).to(
-      receive(:call)
-        .with(file: 'response_body')
-        .and_return(
-          Struct
-            .new(:success?, :response_body)
-            .new(speech_kit_success, { 'result' => text }),
-        ),
-    )
-  end
+        allow(::Telegram::Message::SendService).to(receive(:call).with(send_message_params))
+      end
 
-  let(:stub_send_message) { allow(Telegram.bot).to receive(:send_message).with(send_message_params) }
-
-  let(:d_f_failed_state) { false }
-  let(:speech_kit_success) { true }
-
-  context 'when everything is ok' do
-    before do
-      stub_download_file
-      stub_speech_kit
-      stub_send_message
+      it 'is success' do
+        expect(call_service).to be_success
+        expect(::Telegram::Message::SendService).to have_received(:call).with(send_message_params)
+      end
     end
 
-    it 'is success' do
-      expect(call_service).to be_success
-      expect(Telegram.bot).to have_received(:send_message).with(send_message_params)
-    end
-  end
 
-  context 'when audio file not found' do
-    before do
-      stub_download_file
-      stub_send_message
-    end
+    context 'when duration >= 30' do
+      let(:duration) { 31 }
 
-    let(:text) { I18n.t('telegram.errors.invalid_audio_file') }
-    let(:d_f_failed_state) { true }
+      before { allow(::Yandex::AsyncSpeechKit::TranscribeService).to(receive(:call).with(params)) }
 
-    it 'is failed' do
-      expect(call_service).to be_success
-      expect(Telegram.bot).to have_received(:send_message).with(send_message_params)
-    end
-  end
-
-  context 'when yandex speech api failed' do
-    before do
-      stub_download_file
-      stub_speech_kit
-      stub_send_message
-    end
-
-    let(:text) { I18n.t('telegram.errors.failed_recognize') }
-    let(:speech_kit_success) { false }
-
-    it 'is success' do
-      expect(call_service).to be_success
-      expect(Telegram.bot).to have_received(:send_message).with(send_message_params)
+      it 'is failed' do
+        expect(call_service).to be_success
+        expect(::Yandex::AsyncSpeechKit::TranscribeService).to have_received(:call).with(params)
+      end
     end
   end
 
@@ -109,6 +76,12 @@ RSpec.describe Telegram::Audio::RecognizeService do
 
   context 'when message_id is nil' do
     let(:message_id) { nil }
+
+    it { expect(call_service).to be_failed }
+  end
+
+  context 'when duration is nil' do
+    let(:duration) { nil }
 
     it { expect(call_service).to be_failed }
   end

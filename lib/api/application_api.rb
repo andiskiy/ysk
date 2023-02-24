@@ -50,7 +50,11 @@ module Api
     private
 
     def call
-      process
+      begin
+        process
+      rescue Error
+        nil
+      end
 
       self
     end

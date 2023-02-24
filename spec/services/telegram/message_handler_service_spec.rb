@@ -43,14 +43,19 @@ RSpec.describe Telegram::MessageHandlerService do
     }
   end
 
+  let(:send_params) { [chat['id'], voice['file_id'], voice['duration'], params['message_id']] }
+
   context 'when everything is ok' do
     before do
       allow(::Telegram::Audio::RecognizeWorker).to(
-        receive(:perform_async).with(chat['id'], voice['file_id'], params['message_id']),
+        receive(:perform_async).with(*send_params),
       )
     end
 
-    it { expect(call_service).to be_success }
+    it 'is success' do
+      expect(call_service).to be_success
+      expect(::Telegram::Audio::RecognizeWorker).to have_received(:perform_async).with(*send_params)
+    end
   end
 
   context 'when message_id is nil' do

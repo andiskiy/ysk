@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe Api::Yandex::SpeechKit do
+RSpec.describe Api::Yandex::SpeechKit::Transcribe do
   subject(:perform) { described_class.call(file: file) }
 
   before do
@@ -17,20 +17,20 @@ RSpec.describe Api::Yandex::SpeechKit do
 
   let(:result) { { 'result' => 'how are you?' } }
 
-  context 'when file filled' do
-    before { Auth.instance.update(expires_at: 1.day.from_now) }
+  it 'is success' do
+    perform
 
-    it 'is success' do
-      perform
-
-      expect(perform.response_body).to eq(result)
-    end
+    expect(perform.response_body).to eq(result)
   end
 
   context 'when response code is 422' do
     let(:status) { 422 }
 
-    before { allow(::Api::Yandex::RefreshIamToken).to receive(:call) }
+    it { expect(perform).to be_failed }
+  end
+
+  context 'when file is blank' do
+    let(:file) { '' }
 
     it { expect(perform).to be_failed }
   end
