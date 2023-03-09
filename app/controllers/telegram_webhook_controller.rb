@@ -8,8 +8,14 @@ class TelegramWebhookController < Telegram::Bot::UpdatesController
   end
 
   def start!(_word = nil, *_other_words)
-    response = from ? "Hello #{from['username']}!" : 'Hi there!'
+    response = from ? build_text : 'Привет всем!'
 
     respond_with :message, text: response
+  end
+
+  private
+
+  def build_text
+    "Привет #{from['username']}! Это Yandex SpeechKit. Я умею преобразовывать голосовые сообщения в текст."
   end
 end
